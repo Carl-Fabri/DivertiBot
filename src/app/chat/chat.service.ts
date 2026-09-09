@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
 import { ChatMessage, ChatRequest, ChatResponse } from './chat.models';
+import { toErrorMessage } from '../shared/error-message';
 
 /**
  * Personalidad de ÁnimoBot. Se envía como mensaje "system" en cada petición.
@@ -35,10 +36,10 @@ export class ChatService {
     return this.http.post<ChatResponse>('/api/chat', body).pipe(
       map((res) => res.reply),
       catchError((err) => {
-        const msg =
-          err?.error?.error ||
-          err?.message ||
-          'No se pudo contactar con ÁnimoBot. Revisa tu conexión o la API key.';
+        const msg = toErrorMessage(
+          err,
+          'No se pudo contactar con ÁnimoBot. Revisa tu conexión o la API key.',
+        );
         return throwError(() => new Error(msg));
       }),
     );

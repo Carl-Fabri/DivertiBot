@@ -5,6 +5,13 @@ Trivia · WaifuBot) y un **botón flotante que abre una interfaz de chat**. Los 
 hablan con un **agente gratuito a través de OpenRouter**, servido por un **proxy en el servidor**
 para que la API key nunca llegue al navegador.
 
+## 🔗 Demo en vivo
+
+**<https://diverti-14grj3iw1-elfabriciof-5588s-projects.vercel.app>**
+
+Desplegado en Vercel. Si algún chat o la trivia no responde, suele ser el límite de uso del modelo
+gratuito de OpenRouter: espera un momento y reintenta (la trivia cae a su banco local).
+
 ---
 
 ## 1. La problemática (por qué existe ÁnimoBot)
@@ -196,8 +203,25 @@ solo hacen de proxy a OpenRouter. Nada de sesiones en memoria ni websockets.
 4. Si el SSR cae a render de cliente por las cabeceras del proxy, añade en Vercel
    **`NG_TRUST_PROXY_HEADERS=x-forwarded-host,x-forwarded-proto`**.
 
-**Límites a tener en cuenta:** las funciones del plan *Hobby* cortan a ~10 s. El proxy tiene un
-timeout de 45 s y algunos modelos `:free` son lentos, así que puede haber algún 504 ocasional; en
-plan *Pro* se puede subir con `maxDuration` en un `vercel.json`.
+### Timeouts en Vercel (`Ups: [object Object]` / respuestas que fallan)
+
+Las funciones del plan *Hobby* cortan a los ~10 s. Si el modelo `:free` de OpenRouter tarda más,
+Vercel corta la función y devuelve **su propio** cuerpo de error (`{ error: { code, message } }`);
+por eso antes aparecía `Ups: [object Object]`. Ya está mitigado:
+
+- El cliente ahora normaliza cualquier forma de error a texto (`src/app/shared/error-message.ts`).
+- El proxy aborta a los **25 s** (ajustable con `OPENROUTER_TIMEOUT_MS`) para devolver un JSON claro
+  antes de que la plataforma lo mate.
+
+Para que responda rápido en Vercel, define en *Environment Variables* un **modelo gratuito veloz**,
+p. ej.:
+
+```
+OPENROUTER_MODEL=google/gemini-2.0-flash-exp:free
+# o: meta-llama/llama-3.2-3b-instruct:free
+```
+
+Si tu plan lo permite, puedes subir el límite de la función creando un `vercel.json`
+(`functions` → `maxDuration`).
 
 Generado con Angular CLI 21.2.9.

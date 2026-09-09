@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   DEFAULT_PREFS,
@@ -9,6 +19,8 @@ import {
 } from './waifubot.service';
 
 const STORAGE_KEY = 'waifubot.prefs';
+const CHAT_KEY = 'waifubot.chat';
+const MAX_STORED = 60;
 
 function loadPrefs(): WaifuPrefs {
   if (typeof localStorage === 'undefined') return { ...DEFAULT_PREFS };
@@ -44,6 +56,37 @@ function makeGreeting(p: WaifuPrefs): string {
   const name = cased(p.petNames[0] || 'mi rey');
   const meow = cased(p.meow || 'miau');
   return `¡${meow}! Aquí estoy para ti, ${name}. Cuéntame qué te preocupa y lo vemos juntos 🐾`;
+}
+
+/** Recupera la conversación guardada; si no hay, arranca con el saludo */
+function loadMessages(p: WaifuPrefs): WaifuMessage[] {
+  const greeting: WaifuMessage = { role: 'assistant', content: makeGreeting(p), at: Date.now() };
+  if (typeof localStorage === 'undefined') return [greeting];
+  try {
+    const raw = localStorage.getItem(CHAT_KEY);
+    if (!raw) return [greeting];
+    const arr = JSON.parse(raw);
+    const valid: WaifuMessage[] = Array.isArray(arr)
+      ? arr.filter(
+          (m: unknown): m is WaifuMessage =>
+            !!m &&
+            (( m as WaifuMessage).role === 'user' || (m as WaifuMessage).role === 'assistant') &&
+            typeof (m as WaifuMessage).content === 'string',
+        )
+      : [];
+    return valid.length ? valid : [greeting];
+  } catch {
+    return [greeting];
+  }
+}
+
+function saveMessages(msgs: WaifuMessage[]): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(CHAT_KEY, JSON.stringify(msgs.slice(-MAX_STORED)));
+  } catch {
+    /* modo incógnito o storage lleno: se ignora */
+  }
 }
 
 @Component({
@@ -88,6 +131,20 @@ export class Waifubot {
     const cased = (s: string) => (p.shout ? s.toUpperCase() : s.toLowerCase());
     return p.petNames.map(cased).join(' · ');
   });
+
+  constructor() {
+    // Tras la hidratación, recupera la conversación guardada (si la hay)…
+    afterNextRender(() => {
+      const stored = loadMessages(this.prefs());
+      if (stored.length > 1) {
+        this.messages.set(stored);
+        this.scrollToBottom();
+      }
+    });
+    // …y la guarda en cada cambio, para que sobreviva a cambiar de sección
+    // o recargar la página.
+    effect(() => saveMessages(this.messages()));
+  }
 
   protected toggleSettings(): void {
     if (!this.showSettings()) {

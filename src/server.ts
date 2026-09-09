@@ -57,8 +57,11 @@ async function callOpenRouter(
     return { ok: false, status: 500, reply: '', model, usage: empty, error: 'NO_API_KEY' };
   }
 
+  // Aborta antes de que la plataforma (p. ej. Vercel) mate la función, para
+  // poder devolver un JSON de error legible. Ajustable con OPENROUTER_TIMEOUT_MS.
+  const timeoutMs = Number(process.env['OPENROUTER_TIMEOUT_MS']) || 25_000;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45_000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const upstream = await fetch(OPENROUTER_URL, {

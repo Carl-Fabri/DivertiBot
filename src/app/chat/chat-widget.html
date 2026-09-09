@@ -40,7 +40,15 @@
       </div>
       <button
         type="button"
-        class="ml-auto rounded-md p-1 text-indigo-100 transition hover:bg-white/15 hover:text-white"
+        class="ml-auto rounded-md px-2 py-1 text-xs font-medium text-indigo-100 transition hover:bg-white/15 hover:text-white"
+        aria-label="Borrar conversación"
+        (click)="clearChat()"
+      >
+        Borrar
+      </button>
+      <button
+        type="button"
+        class="rounded-md p-1 text-indigo-100 transition hover:bg-white/15 hover:text-white"
         aria-label="Cerrar chat"
         (click)="toggle()"
       >

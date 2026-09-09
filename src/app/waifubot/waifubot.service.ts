@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
+import { toErrorMessage } from '../shared/error-message';
 
 export interface WaifuMessage {
   role: 'user' | 'assistant';
@@ -110,10 +111,7 @@ export class WaifubotService {
     return this.http.post<{ reply: string }>('/api/chat', body).pipe(
       map((res) => res.reply),
       catchError((err) => {
-        const msg =
-          err?.error?.error ||
-          err?.message ||
-          'No pude conectar, mi rey. Revisa la conexión o la API key.';
+        const msg = toErrorMessage(err, 'No pude conectar, mi rey. Revisa la conexión o la API key.');
         return throwError(() => new Error(msg));
       }),
     );

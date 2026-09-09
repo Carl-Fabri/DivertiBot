@@ -2,6 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  afterNextRender,
+  effect,
   inject,
   signal,
   viewChild,
@@ -16,6 +18,45 @@ const SUGGESTIONS = [
   'Necesito motivación para seguir estudiando',
   'Un dato curioso random',
 ];
+
+const CHAT_KEY = 'animobot.chat';
+const MAX_STORED = 60;
+
+const GREETING: ChatMessage = {
+  role: 'assistant',
+  content:
+    '¡Hola! Soy ÁnimoBot 🤖. Estoy aquí para tus descansos: chistes, retos absurdos, datos curiosos o un empujón de motivación. ¿Qué necesitas?',
+  at: 0,
+};
+
+function loadMessages(): ChatMessage[] {
+  if (typeof localStorage === 'undefined') return [{ ...GREETING, at: Date.now() }];
+  try {
+    const raw = localStorage.getItem(CHAT_KEY);
+    if (!raw) return [{ ...GREETING, at: Date.now() }];
+    const arr = JSON.parse(raw);
+    const valid: ChatMessage[] = Array.isArray(arr)
+      ? arr.filter(
+          (m: unknown): m is ChatMessage =>
+            !!m &&
+            ((m as ChatMessage).role === 'user' || (m as ChatMessage).role === 'assistant') &&
+            typeof (m as ChatMessage).content === 'string',
+        )
+      : [];
+    return valid.length ? valid : [{ ...GREETING, at: Date.now() }];
+  } catch {
+    return [{ ...GREETING, at: Date.now() }];
+  }
+}
+
+function saveMessages(msgs: ChatMessage[]): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(CHAT_KEY, JSON.stringify(msgs.slice(-MAX_STORED)));
+  } catch {
+    /* incógnito o storage lleno */
+  }
+}
 
 @Component({
   selector: 'app-chat-widget',
@@ -34,14 +75,24 @@ export class ChatWidget {
   protected readonly draft = signal('');
   protected readonly suggestions = SUGGESTIONS;
 
-  protected readonly messages = signal<ChatMessage[]>([
-    {
-      role: 'assistant',
-      content:
-        '¡Hola! Soy ÁnimoBot 🤖. Estoy aquí para tus descansos: chistes, retos absurdos, datos curiosos o un empujón de motivación. ¿Qué necesitas?',
-      at: Date.now(),
-    },
-  ]);
+  protected readonly messages = signal<ChatMessage[]>([{ ...GREETING, at: Date.now() }]);
+
+  constructor() {
+    // En el navegador (tras la hidratación) recupera la conversación guardada…
+    afterNextRender(() => {
+      const stored = loadMessages();
+      if (stored.length > 1) {
+        this.messages.set(stored);
+      }
+    });
+    // …y la vuelve a guardar en cada cambio.
+    effect(() => saveMessages(this.messages()));
+  }
+
+  protected clearChat(): void {
+    this.messages.set([{ ...GREETING, at: Date.now() }]);
+    this.error.set(null);
+  }
 
   protected toggle(): void {
     this.open.update((v) => !v);
