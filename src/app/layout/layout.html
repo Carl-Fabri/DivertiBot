@@ -1,0 +1,79 @@
+<div class="min-h-dvh bg-(--bg) lg:flex">
+  <!-- Overlay móvil -->
+  @if (open()) {
+    <div
+      class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden"
+      (click)="close()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <!-- Left bar -->
+  <aside
+    class="sidebar fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:z-auto lg:translate-x-0"
+    [class.-translate-x-full]="!open()"
+    [class.translate-x-0]="open()"
+  >
+    <div class="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
+      <span class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-600 text-xl">🚀</span>
+      <div class="leading-tight">
+        <p class="font-bold text-slate-900">AnimoSpace</p>
+        <p class="text-xs text-slate-500">Buen rollo en los descansos</p>
+      </div>
+    </div>
+
+    <nav class="flex-1 space-y-1 p-3">
+      @for (item of nav; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-indigo-50 text-indigo-700"
+          #rla="routerLinkActive"
+          class="flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+          (click)="close()"
+        >
+          <span class="text-lg leading-none">{{ item.icon }}</span>
+          <span>
+            <span class="block">{{ item.label }}</span>
+            <span
+              class="block text-xs font-normal"
+              [class]="rla.isActive ? 'text-indigo-500' : 'text-slate-400'"
+            >
+              {{ item.hint }}
+            </span>
+          </span>
+        </a>
+      }
+    </nav>
+
+    <div class="border-t border-slate-100 p-4 text-xs text-slate-400">
+      Chat de ÁnimoBot disponible en todas las páginas → botón 💬
+    </div>
+  </aside>
+
+  <!-- Contenido -->
+  <div class="flex min-w-0 flex-1 flex-col">
+    <!-- Barra superior (solo móvil) -->
+    <header
+      class="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 lg:hidden"
+    >
+      <button
+        type="button"
+        class="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+        aria-label="Abrir menú"
+        (click)="toggle()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+      <span class="font-semibold text-slate-800">AnimoSpace</span>
+    </header>
+
+    <main class="min-w-0 flex-1">
+      <router-outlet />
+    </main>
+  </div>
+
+  <!-- Botón + interfaz de chat (global) -->
+  <app-chat-widget />
+</div>

@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-border) transparent;
+  min-height: 16rem;
+  max-height: 26rem;
+}
+
+.sad-face {
+  animation: drop-in 180ms ease-out;
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+  animation: blink 1.2s infinite ease-in-out both;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sad-face,
+  .dot {
+    animation: none;
+  }
+}

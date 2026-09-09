@@ -1,0 +1,156 @@
+<!-- Botón flotante (FAB) -->
+<button
+  type="button"
+  class="chat-fab fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-500 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300"
+  [attr.aria-expanded]="open()"
+  aria-controls="animobot-panel"
+  [attr.aria-label]="open() ? 'Cerrar chat de ÁnimoBot' : 'Abrir chat de ÁnimoBot'"
+  (click)="toggle()"
+>
+  @if (open()) {
+    <svg viewBox="0 0 24 24" fill="none" class="h-6 w-6" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  } @else {
+    <svg viewBox="0 0 24 24" fill="none" class="h-6 w-6" aria-hidden="true">
+      <path
+        d="M4 5h16v10H8l-4 4V5z"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linejoin="round"
+      />
+    </svg>
+  }
+</button>
+
+<!-- Panel de chat -->
+@if (open()) {
+  <section
+    id="animobot-panel"
+    class="chat-panel fixed bottom-24 right-5 z-50 flex w-[min(92vw,24rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+    role="dialog"
+    aria-label="Chat con ÁnimoBot"
+  >
+    <!-- Cabecera -->
+    <header class="flex items-center gap-3 bg-indigo-600 px-4 py-3 text-white">
+      <span class="grid h-9 w-9 place-items-center rounded-full bg-white/20 text-lg">🤖</span>
+      <div class="leading-tight">
+        <p class="font-semibold">ÁnimoBot</p>
+        <p class="text-xs text-indigo-100">Tu subidón para los descansos</p>
+      </div>
+      <button
+        type="button"
+        class="ml-auto rounded-md p-1 text-indigo-100 transition hover:bg-white/15 hover:text-white"
+        aria-label="Cerrar chat"
+        (click)="toggle()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+          <path
+            d="M6 6l12 12M18 6L6 18"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Mensajes -->
+    <div #scrollBox class="chat-scroll flex-1 space-y-3 overflow-y-auto bg-slate-50 px-4 py-4">
+      @for (msg of messages(); track trackByIndex($index)) {
+        <div
+          class="flex"
+          [class.justify-end]="msg.role === 'user'"
+          [class.justify-start]="msg.role === 'assistant'"
+        >
+          <div
+            class="max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm shadow-sm"
+            [class]="
+              msg.role === 'user'
+                ? 'bg-indigo-600 text-white rounded-br-sm'
+                : 'bg-white text-slate-700 border border-slate-200 rounded-bl-sm'
+            "
+          >
+            {{ msg.content }}
+          </div>
+        </div>
+      }
+
+      @if (loading()) {
+        <div class="flex justify-start">
+          <div
+            class="flex items-center gap-1 rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-3.5 py-3 shadow-sm"
+          >
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+      }
+
+      @if (error()) {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <p class="font-medium">Ups: {{ error() }}</p>
+          <button
+            type="button"
+            class="mt-1 font-semibold text-red-700 underline hover:no-underline"
+            (click)="retry()"
+          >
+            Reintentar
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Sugerencias rápidas -->
+    @if (messages().length <= 1 && !loading()) {
+      <div class="flex flex-wrap gap-2 border-t border-slate-100 bg-white px-3 pt-3">
+        @for (s of suggestions; track s) {
+          <button
+            type="button"
+            class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
+            (click)="useSuggestion(s)"
+          >
+            {{ s }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Entrada -->
+    <form
+      class="flex items-end gap-2 border-t border-slate-100 bg-white p-3"
+      (ngSubmit)="submit()"
+    >
+      <textarea
+        rows="1"
+        class="max-h-28 flex-1 resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+        placeholder="Escribe algo… (Enter para enviar)"
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        name="draft"
+        [disabled]="loading()"
+        (keydown.enter)="onEnter($event)"
+      ></textarea>
+      <button
+        type="submit"
+        class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-600 text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+        [disabled]="loading() || !draft().trim()"
+        aria-label="Enviar mensaje"
+      >
+        <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+          <path
+            d="M4 12l16-8-6 16-2-6-8-2z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </form>
+
+    <p class="bg-white px-3 pb-2 text-center text-[10px] text-slate-400">
+      ÁnimoBot puede equivocarse. Humor generado por IA vía OpenRouter.
+    </p>
+  </section>
+}

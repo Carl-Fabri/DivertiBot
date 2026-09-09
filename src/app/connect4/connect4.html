@@ -1,0 +1,109 @@
+<div class="flex flex-col gap-5 lg:flex-row lg:items-start">
+  <!-- Tablero -->
+  <div class="shrink-0">
+    <div class="rounded-2xl border border-(--border) bg-(--surface-2) p-3 shadow-inner">
+      <div class="grid grid-cols-7 gap-2">
+        @for (r of rows; track r) {
+          @for (c of cols; track c) {
+            <button
+              type="button"
+              class="cell relative aspect-square w-10 rounded-full transition sm:w-12"
+              [class.cursor-pointer]="myTurn() && legalCols().includes(c)"
+              [class.cursor-not-allowed]="!myTurn() || !legalCols().includes(c)"
+              [disabled]="!myTurn()"
+              [attr.aria-label]="'Soltar ficha en columna ' + (c + 1)"
+              (click)="play(c)"
+            >
+              <span
+                class="disc absolute inset-0 rounded-full"
+                [class]="{
+                  R: 'bg-red-500 shadow',
+                  Y: 'bg-amber-400 shadow',
+                  '': 'bg-(--bg)',
+                }[board()[r][c] ?? '']"
+                [class.win-cell]="isWinning(r, c)"
+              ></span>
+            </button>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel lateral -->
+  <div class="flex min-w-0 flex-1 flex-col gap-4">
+    <div class="flex items-center gap-3">
+      <span
+        class="rounded-full px-3 py-1 text-sm font-semibold"
+        [class]="
+          status() === 'win'
+            ? 'bg-emerald-100 text-emerald-700'
+            : status() === 'lose'
+              ? 'bg-rose-100 text-rose-700'
+              : status() === 'draw'
+                ? 'bg-slate-200 text-slate-600'
+                : 'bg-indigo-100 text-indigo-700'
+        "
+      >
+        {{ statusText() }}
+      </span>
+      @if (thinking()) {
+        <span class="flex gap-1">
+          <span class="think-dot"></span><span class="think-dot"></span><span class="think-dot"></span>
+        </span>
+      }
+    </div>
+
+    <!-- Bocadillo de ÁnimoBot -->
+    <div class="flex items-start gap-2">
+      <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-indigo-600 text-base">🤖</span>
+      <div class="rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
+        {{ quip() }}
+        @if (lastMoveWasLocal() && status() !== 'playing') {
+          <span class="mt-1 block text-[11px] text-slate-400">(jugada calculada en local, sin gastar tokens)</span>
+        }
+      </div>
+    </div>
+
+    <!-- Marcador -->
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div class="rounded-xl bg-emerald-50 px-2 py-2">
+        <p class="text-lg font-bold text-emerald-600">{{ scores().won }}</p>
+        <p class="text-[11px] text-slate-500">Ganadas</p>
+      </div>
+      <div class="rounded-xl bg-rose-50 px-2 py-2">
+        <p class="text-lg font-bold text-rose-600">{{ scores().lost }}</p>
+        <p class="text-[11px] text-slate-500">Perdidas</p>
+      </div>
+      <div class="rounded-xl bg-slate-100 px-2 py-2">
+        <p class="text-lg font-bold text-slate-600">{{ scores().draw }}</p>
+        <p class="text-[11px] text-slate-500">Empates</p>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+      Tokens de OpenRouter esta sesión:
+      <span class="font-semibold text-slate-700">{{ tokens() | number }}</span>
+      <span class="block text-[11px] text-slate-400">
+        Solo se llama al modelo en el turno del bot; si falla, juega la heurística local (0 tokens).
+      </span>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+        (click)="newGame()"
+      >
+        Nueva partida
+      </button>
+      <button
+        type="button"
+        class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+        (click)="resetScores()"
+      >
+        Reiniciar marcador
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,3 +1,221 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+/* ============================================================================
+   TEMA OSCURO · familia de color ÁMBAR / NARANJA
+   ----------------------------------------------------------------------------
+   Toda la app comparte esta paleta. Para cambiar la "familia de colores"
+   basta con tocar estas variables (acento, texto, superficies).
+   Las reglas de más abajo remapean las clases claras de Tailwind
+   (slate-*, indigo-*, pink-*, …) a esta paleta oscura.
+   ============================================================================ */
+:root {
+  color-scheme: dark;
+
+  /* Fondos y superficies */
+  --bg: #140f08; /* fondo de la app */
+  --bg-2: #1c1409; /* zonas hundidas (scroll del chat, pistas) */
+  --surface: #241a0e; /* tarjetas / paneles */
+  --surface-2: #2f2415; /* hover, tiles, barras de progreso */
+  --border: rgba(255, 244, 230, 0.12);
+
+  /* Franjas separadoras entre secciones */
+  --stripe: rgba(255, 255, 255, 0.92);
+  --stripe-w: 2px;
+
+  /* Texto */
+  --text: #f4ece0;
+  --text-dim: #d8c7ac;
+  --text-mut: #b39a78;
+
+  /* Acento (familia ámbar) */
+  --accent: #f59e0b;
+  --accent-600: #d97706;
+  --accent-text: #fbbf24; /* acento como texto sobre fondo oscuro */
+  --accent-contrast: #1a1206; /* texto sobre botón ámbar */
+  --accent-soft: rgba(245, 158, 11, 0.15);
+  --accent-border: rgba(245, 158, 11, 0.4);
+
+  /* Secundario coral (para acentos puntuales) */
+  --coral: #fb7185;
+
+  /* Estados semánticos legibles en oscuro */
+  --ok-bg: color-mix(in srgb, #34d399 15%, transparent);
+  --ok-text: #6ee7b7;
+  --ok-border: color-mix(in srgb, #34d399 45%, transparent);
+  --danger-bg: color-mix(in srgb, #fb7185 15%, transparent);
+  --danger-text: #fda4af;
+  --danger-border: color-mix(in srgb, #fb7185 40%, transparent);
+  --info-bg: color-mix(in srgb, #38bdf8 16%, transparent);
+  --info-text: #7dd3fc;
+}
+
+html,
+body {
+  background: var(--bg);
+}
+body {
+  color: var(--text);
+}
+::selection {
+  background: var(--accent-soft);
+}
+* {
+  scrollbar-color: var(--accent-border) transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Remapeo de clases de Tailwind -> paleta oscura                     */
+/* ------------------------------------------------------------------ */
+
+/* Superficies */
+.bg-white {
+  background-color: var(--surface) !important;
+}
+.bg-slate-50 {
+  background-color: var(--bg-2) !important;
+}
+.bg-slate-100,
+.bg-slate-300 {
+  background-color: var(--surface-2) !important;
+}
+.hover\:bg-slate-50:hover,
+.hover\:bg-slate-100:hover {
+  background-color: var(--surface-2) !important;
+}
+
+/* Texto */
+.text-slate-900,
+.text-slate-800,
+.text-indigo-900 {
+  color: var(--text) !important;
+}
+.text-slate-700,
+.text-slate-600,
+.text-indigo-900\/80,
+.text-indigo-100 {
+  color: var(--text-dim) !important;
+}
+.text-slate-500,
+.text-slate-400 {
+  color: var(--text-mut) !important;
+}
+
+/* Bordes neutros */
+.border-slate-100,
+.border-slate-200,
+.border-slate-300 {
+  border-color: var(--border) !important;
+}
+
+/* Acento: índigo y rosa -> ámbar */
+.bg-indigo-600,
+.bg-indigo-500,
+.bg-pink-500,
+.bg-pink-400 {
+  background-color: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+}
+.hover\:bg-indigo-500:hover,
+.hover\:bg-pink-400:hover {
+  background-color: var(--accent-600) !important;
+}
+.bg-indigo-50,
+.bg-indigo-100,
+.bg-pink-50,
+.bg-pink-100,
+.hover\:bg-indigo-100:hover,
+.hover\:bg-pink-100:hover {
+  background-color: var(--accent-soft) !important;
+}
+.text-indigo-700,
+.text-indigo-600,
+.text-indigo-500,
+.text-pink-700,
+.text-pink-600 {
+  color: var(--accent-text) !important;
+}
+.border-indigo-200,
+.border-indigo-300,
+.border-pink-200 {
+  border-color: var(--accent-border) !important;
+}
+.hover\:border-indigo-300:hover,
+.hover\:border-pink-400:hover,
+.focus\:border-indigo-400:focus,
+.focus\:border-pink-400:focus {
+  border-color: var(--accent) !important;
+}
+.shadow-indigo-600\/30 {
+  --tw-shadow-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Estados semánticos (se conservan pero adaptados al fondo oscuro) */
+.bg-emerald-50,
+.bg-emerald-100 {
+  background-color: var(--ok-bg) !important;
+}
+.text-emerald-600,
+.text-emerald-700,
+.text-emerald-800 {
+  color: var(--ok-text) !important;
+}
+.border-emerald-200,
+.border-emerald-400 {
+  border-color: var(--ok-border) !important;
+}
+.bg-rose-50,
+.bg-rose-100,
+.bg-red-50,
+.bg-red-100 {
+  background-color: var(--danger-bg) !important;
+}
+.text-rose-600,
+.text-rose-700,
+.text-rose-800,
+.text-red-700 {
+  color: var(--danger-text) !important;
+}
+.border-rose-200,
+.border-rose-300,
+.border-rose-400,
+.border-red-200 {
+  border-color: var(--danger-border) !important;
+}
+.bg-amber-100 {
+  background-color: var(--accent-soft) !important;
+}
+.text-amber-700 {
+  color: #fcd34d !important;
+}
+.bg-sky-100 {
+  background-color: var(--info-bg) !important;
+}
+.text-sky-700 {
+  color: var(--info-text) !important;
+}
+
+/* Inputs y textareas */
+input,
+textarea,
+select {
+  color: var(--text);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-mut);
+}
+
+/* ------------------------------------------------------------------ */
+/*  FRANJAS BLANCAS separadoras entre secciones de cada página        */
+/* ------------------------------------------------------------------ */
+.page-stack > * + * {
+  border-top: var(--stripe-w) solid var(--stripe);
+  padding-top: 1.5rem;
+}
+@media (min-width: 768px) {
+  .page-stack > * + * {
+    padding-top: 2rem;
+  }
+}

@@ -2,11 +2,12 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "a3129219-bec0-49c6-a11f-d37beaf2c94a"
   },
   "newProjectRoot": "projects",
   "projects": {
-    "InteraccionMaquina": {
+    "animospace": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -24,13 +25,11 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.css"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": []
+              "allowedHosts": ["localhost", "*.vercel.app"]
             },
             "ssr": {
               "entry": "src/server.ts"
@@ -64,10 +63,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "InteraccionMaquina:build:production"
+              "buildTarget": "animospace:build:production"
             },
             "development": {
-              "buildTarget": "InteraccionMaquina:build:development"
+              "buildTarget": "animospace:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -1,0 +1,213 @@
+<div class="text-slate-800">
+  <div class="page-stack mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6 md:px-8 md:py-10">
+    <!-- Cabecera -->
+    <header class="flex flex-wrap items-center gap-3">
+      <span class="grid h-11 w-11 place-items-center rounded-xl bg-pink-500 text-2xl">🐱</span>
+      <div class="mr-auto">
+        <h1 class="text-xl font-bold text-slate-900 md:text-2xl">WaifuBot</h1>
+        <p class="text-sm text-slate-500">
+          Cuéntale un problema y te responde con consejos y palabras cariñosas.
+        </p>
+      </div>
+
+      <!-- Botón Reiniciar con carita triste al hacer hover -->
+      <div class="relative">
+        @if (resetHover()) {
+          <span class="sad-face pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 text-xl">😿</span>
+        }
+        <button
+          type="button"
+          class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+          [class]="
+            resetHover()
+              ? 'border-rose-300 bg-rose-50 text-rose-600'
+              : 'border-slate-300 text-slate-600 hover:bg-slate-100'
+          "
+          (mouseenter)="resetHover.set(true)"
+          (mouseleave)="resetHover.set(false)"
+          (focus)="resetHover.set(true)"
+          (blur)="resetHover.set(false)"
+          (click)="resetChat()"
+        >
+          {{ resetHover() ? 'Reiniciar 😢' : 'Reiniciar' }}
+        </button>
+      </div>
+    </header>
+
+    <!-- Panel de preferencias del propio bot -->
+    <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <button
+        type="button"
+        class="flex w-full items-center justify-between px-5 py-3 text-left"
+        [attr.aria-expanded]="showSettings()"
+        (click)="toggleSettings()"
+      >
+        <span class="text-sm font-semibold text-slate-800">⚙️ Preferencias de lenguaje de WaifuBot</span>
+        <span class="text-slate-400">{{ showSettings() ? '▲' : '▼' }}</span>
+      </button>
+
+      @if (showSettings()) {
+        <div class="space-y-4 border-t border-slate-100 px-5 py-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700" for="petnames">
+              Apelativos cariñosos (separados por comas)
+            </label>
+            <input
+              id="petnames"
+              type="text"
+              class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100"
+              placeholder="cariño, cielo"
+              [ngModel]="petNamesDraft()"
+              (ngModelChange)="petNamesDraft.set($event)"
+              name="petnames"
+            />
+          </div>
+
+          <div class="flex flex-wrap items-end gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700" for="meow">Muletilla felina</label>
+              <input
+                id="meow"
+                type="text"
+                class="mt-1 w-40 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100"
+                placeholder="miau"
+                [ngModel]="meowDraft()"
+                (ngModelChange)="meowDraft.set($event)"
+                name="meow"
+              />
+            </div>
+
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                class="h-4 w-4 rounded border-slate-300 text-pink-500 focus:ring-pink-400"
+                [ngModel]="shoutDraft()"
+                (ngModelChange)="shoutDraft.set($event)"
+                name="shout"
+              />
+              Escribir apelativos y muletilla en MAYÚSCULAS
+            </label>
+          </div>
+
+          <div>
+            <span class="block text-sm font-medium text-slate-700">Nivel de cariño</span>
+            <div class="mt-1 flex gap-2">
+              @for (lvl of [1, 2, 3]; track lvl) {
+                <button
+                  type="button"
+                  class="rounded-full border px-3 py-1 text-sm transition"
+                  [class]="
+                    sweetnessDraft() === lvl
+                      ? 'border-pink-500 bg-pink-500 text-white'
+                      : 'border-slate-300 text-slate-600 hover:bg-slate-100'
+                  "
+                  (click)="sweetnessDraft.set($any(lvl))"
+                >
+                  {{ ['Sobrio', 'Cariñoso', 'Muy meloso'][lvl - 1] }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              class="rounded-xl bg-pink-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-400"
+              (click)="savePreferences()"
+            >
+              Guardar preferencias
+            </button>
+            <button
+              type="button"
+              class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+              (click)="restoreDefaults()"
+            >
+              Valores por defecto
+            </button>
+          </div>
+          <p class="text-xs text-slate-400">
+            Se guardan en este navegador. En uso ahora: <span class="text-slate-600">{{ previewNames() }}</span>
+          </p>
+        </div>
+      }
+    </section>
+
+    <!-- Conversación -->
+    <section class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div #scrollBox class="chat-scroll space-y-3 overflow-y-auto bg-slate-50 px-4 py-4">
+        @for (msg of messages(); track trackByIndex($index)) {
+          <div class="flex" [class.justify-end]="msg.role === 'user'">
+            <div
+              class="max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm shadow-sm"
+              [class]="
+                msg.role === 'user'
+                  ? 'bg-pink-500 text-white rounded-br-sm'
+                  : 'bg-white text-slate-700 border border-slate-200 rounded-bl-sm'
+              "
+            >
+              {{ msg.content }}
+            </div>
+          </div>
+        }
+
+        @if (loading()) {
+          <div class="flex">
+            <div class="flex items-center gap-1 rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+          </div>
+        }
+
+        @if (error()) {
+          <div class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+            <p class="font-medium">Ups: {{ error() }}</p>
+            <button type="button" class="mt-1 font-semibold underline hover:no-underline" (click)="retry()">
+              Reintentar
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Respuestas rápidas -->
+      <div class="flex gap-2 overflow-x-auto border-t border-slate-100 bg-white px-3 pt-3 pb-1">
+        @for (q of quickReplies; track q) {
+          <button
+            type="button"
+            class="shrink-0 rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-medium text-pink-700 transition hover:bg-pink-100 disabled:opacity-40"
+            [disabled]="loading()"
+            (click)="sendQuick(q)"
+          >
+            {{ q }}
+          </button>
+        }
+      </div>
+
+      <form class="flex items-end gap-2 border-t border-slate-100 bg-white p-3" (ngSubmit)="submit()">
+        <textarea
+          rows="1"
+          class="max-h-32 flex-1 resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100"
+          placeholder="Cuéntame qué te pasa… (Enter para enviar)"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          name="draft"
+          [disabled]="loading()"
+          (keydown.enter)="onEnter($event)"
+        ></textarea>
+        <button
+          type="submit"
+          class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pink-500 text-white transition hover:bg-pink-400 disabled:opacity-40"
+          [disabled]="loading() || !draft().trim()"
+          aria-label="Enviar"
+        >
+          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+            <path d="M4 12l16-8-6 16-2-6-8-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </form>
+    </section>
+
+    <p class="text-center text-xs text-slate-400">
+      WaifuBot es una IA (OpenRouter) y puede equivocarse. No sustituye ayuda profesional.
+    </p>
+  </div>
+</div>

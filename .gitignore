@@ -11,6 +11,10 @@
 npm-debug.log
 yarn-error.log
 
+# Variables de entorno (contienen la API key de OpenRouter)
+.env
+.env.local
+
 # IDEs and editors
 .idea/
 .project
