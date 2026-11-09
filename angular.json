@@ -29,7 +29,7 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": ["localhost", "*.vercel.app"]
+              "allowedHosts": ["localhost", "*.vercel.app", "*.onrender.com", "*.up.railway.app"]
             },
             "ssr": {
               "entry": "src/server.ts"
