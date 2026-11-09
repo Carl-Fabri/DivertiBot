@@ -5,13 +5,13 @@
   "outputDirectory": "dist/animospace/browser",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/(.*)"
     }
   ],
   "functions": {
-      "api/index.js": {
-        "includeFiles": "dist/animospace/**",
+    "api/index.js": {
+      "includeFiles": "dist/animospace/**",
       "maxDuration": 30
-      }
+    }
   }
 }
