@@ -5,7 +5,8 @@
   "outputDirectory": "dist/animospace/browser",
   "rewrites": [
     {
-      "source": "/(.*)"
+      "source": "/(.*)",
+      "destination": "/api/index.js"
     }
   ],
   "functions": {
